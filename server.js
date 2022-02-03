@@ -25,6 +25,7 @@ function startJsonServer(database) {
     const server = jsonServer.create()
     const router = addSongContentForSongRequest(jsonServer.router(database));
     const middlewares = jsonServer.defaults()
+    const port = process.env.PORT || 3000;
     
     server.use(middlewares)
     server.use(router)
