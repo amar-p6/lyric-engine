@@ -1,45 +1,57 @@
 //server.js
 var fs = require('fs'); 
-const jsonServer = require('json-server');
-let songs = [];
+const songDirectory = './data/';
 
-buildSongsDatabase();
+let data = { songs: [] }
+getSongLibrary();
 
-// Return only base file name without dir
-function buildSongsDatabase() {
-    let data = { songs: [] }
-    fs.readdir("./data/", function(err, files) {
-        files.forEach(function(file) {
-            let song = require('./data/' + file);
-            songs[song.id] = song;
-            data.songs.push({
-                id: song.id,
-                title: song.title
-            });
+function getSongLibrary() {
+    fs.promises.readdir(songDirectory)
+        .then(filenames => {
+            readAllSongItems(filenames);
+        })
+        .catch(err => {
+            console.log(err)
         });
-        startJsonServer(data);
-    });
 }
 
-function startJsonServer(database) {
-    const server = jsonServer.create()
-    const router = addSongContentForSongRequest(jsonServer.router(database));
-    const middlewares = jsonServer.defaults()
-    const port = process.env.PORT || 3000;
-    
-    server.use(middlewares)
-    server.use(router)
-    server.listen(3000, () => {
-        console.log('JSON Server is running')
+function readAllSongItems(filesnames) {
+    var readAllFiles = filesnames.map(readSong);
+    Promise.all(readAllFiles).then(function() {
+        writeSongDatabase();
     })
 }
 
-function addSongContentForSongRequest(router) {
-    router.render = (req, res) => {
-        if (res.locals.data.id !== "undefined" && res.locals.data.hasOwnProperty('id')) {
-            res.locals.data.content = songs[res.locals.data.id].content;
+function readSong(filename) {
+    return new Promise(resolve => 
+        fs.readFile(songDirectory + filename, 'utf-8', function(err, content) {
+            if (err) {
+                onError(err);
+                return;
+            }
+            console.log("Reading file: " + filename);
+            addSongIndex(JSON.parse(content));
+            resolve();
+        })
+    );
+}
+
+function addSongIndex(song) {
+    console.log("Adding song (ID: " + song.id + "): " + song.title);
+    data.songs.push({
+        id: song.id,
+        title: song.title
+    });
+}
+
+function writeSongDatabase() {
+    const songs = JSON.stringify(data);
+    
+    fs.writeFile('db.json', songs, err => {
+        if (err) {
+            console.log('Error writing file', err)
+        } else {
+            console.log('Successfully wrote file')
         }
-        res.jsonp(res.locals.data)
-    }
-    return router;
+    })
 }

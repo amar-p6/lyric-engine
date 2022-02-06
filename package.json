@@ -6,6 +6,7 @@
         "start": "node server.js"
     },
     "dependencies": {
-        "json-server": "^0.17.0"
+        "json-query": "^2.2.2",
+        "lowdb": "^3.0.0"
     }
 }
