@@ -1,6 +1,6 @@
 //server.js
 var fs = require('fs'); 
-const songDirectory = './data/';
+const songDirectory = './public/data/';
 
 let data = { songs: [] }
 getSongLibrary();
@@ -47,7 +47,7 @@ function addSongIndex(song) {
 function writeSongDatabase() {
     const songs = JSON.stringify(data);
     
-    fs.writeFile('db.json', songs, err => {
+    fs.writeFile('public/db.json', songs, err => {
         if (err) {
             console.log('Error writing file', err)
         } else {
