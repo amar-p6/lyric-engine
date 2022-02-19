@@ -18,4 +18,4 @@ web-build/
 .netlify
 
 # project
-public/db.json
+data/db.json

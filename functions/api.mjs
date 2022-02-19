@@ -30,7 +30,7 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        const adapter = new JSONFile('public/db.json');
+        const adapter = new JSONFile('./data/db.json');
         const db = new Low(adapter);
         await db.read();
 
