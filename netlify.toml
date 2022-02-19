@@ -4,6 +4,10 @@
   publish = "public"
   functions = "functions"
 
+# Include all files in all functions
+[functions]
+  included_files = ["data/**"]
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/"
