@@ -30,7 +30,7 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        const adapter = new JSONFile('db.json');
+        const adapter = new JSONFile('public/db.json');
         const db = new Low(adapter);
         await db.read();
 
@@ -51,8 +51,6 @@ exports.handler = async (event, context) => {
                 body: JSON.stringify(result),
             }
         }
-        
-        console.log("not found");
 
         return {
             statusCode: 204,
