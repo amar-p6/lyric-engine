@@ -1,11 +1,17 @@
-const _ = require('lodash');
-const jsonQuery = require('json-query')
-const low = require('lowdb');
-const FileSync = require('lowdb/adapters/FileSync');
+import { _ } from 'lodash'
+import { Low, JSONFile } from 'lowdb'
 
 exports.handler = async (event, context) => {
 
-    function getJsonQuery(queryParams) {
+
+    function getFilterResults(songs, queryParams) {
+        const jsonQuery = require('json-query');
+        const query = buildQuery(queryParams);
+
+        return jsonQuery(query, {data: songs, allowRegexp: true}).value;
+    }
+
+    function buildQuery(queryParams) {
         let query = [];
 
         _.forOwn(queryParams, function(searchQueries, likeKey) {
@@ -23,33 +29,36 @@ exports.handler = async (event, context) => {
         return query.join('');
     }
 
-    function getDatabase() {
-        const adapter = new FileSync('db.json')
-        const db = low(adapter);
-        return db;
-    }
-
     try {
-        const loadDatabase = async () => getDatabase()
-        const db = await loadDatabase();
+        const adapter = new JSONFile('db.json');
+        const db = new Low(adapter);
+        await db.read();
+
         const queryParams = event.multiValueQueryStringParameters;
 
-        let result = [];
+        let result = false;
         if (queryParams.hasOwnProperty('id')) {
-            result = db.get('songs').find({id: queryParams.id*1}).value();
+            result = _.find(db.data.songs, {id: queryParams.id[0]*1});
         } else if (!_.isEmpty(queryParams)) {
-            result = db.get('songs').value();
-            query = getJsonQuery(queryParams);
-            result = jsonQuery(query, {data: result, allowRegexp: true}).value
+            result = getFilterResults(db.data.songs, queryParams);
         } else {
-            result = db.get('songs').value();
+            result = db.data.songs;
         }
 
+        if (result) {
+            return {
+                statusCode: 200,
+                body: JSON.stringify(result),
+            }
+        }
+        
+        console.log("not found");
 
         return {
-            statusCode: 200,
-            body: JSON.stringify(result),
+            statusCode: 204,
+            body: JSON.stringify([]),
         }
+        
     } catch (error) {
         return {
             statusCode: 500,
