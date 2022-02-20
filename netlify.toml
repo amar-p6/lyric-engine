@@ -6,7 +6,7 @@
 
 # Include all files in all functions
 [functions]
-  included_files = ["data/**"]
+  included_files = ["data/**.json"]
 
 [[redirects]]
   from = "/api/*"

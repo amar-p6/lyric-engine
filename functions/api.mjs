@@ -29,38 +29,37 @@ exports.handler = async (event, context) => {
         return query.join('');
     }
 
+    function respond(code, data) {
+        return {
+            statusCode: code,
+            body: JSON.stringify(data),
+        }
+    }
+
     try {
+        const queryParams = event.multiValueQueryStringParameters;
+        if (queryParams.hasOwnProperty('id')) {
+            const song = require(`../data/${queryParams.id[0]*1}.json`);
+            return respond(200, song);
+        }
+
         const adapter = new JSONFile('./data/db.json');
         const db = new Low(adapter);
         await db.read();
 
-        const queryParams = event.multiValueQueryStringParameters;
-
         let result = false;
-        if (queryParams.hasOwnProperty('id')) {
-            result = _.find(db.data.songs, {id: queryParams.id[0]*1});
-        } else if (!_.isEmpty(queryParams)) {
+        if (!_.isEmpty(queryParams)) {
             result = getFilterResults(db.data.songs, queryParams);
         } else {
             result = db.data.songs;
         }
 
         if (result) {
-            return {
-                statusCode: 200,
-                body: JSON.stringify(result),
-            }
+            return respond(200, result);
         }
 
-        return {
-            statusCode: 204,
-            body: JSON.stringify([]),
-        }
-        
+        return respond(204, []);
     } catch (error) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ msg: error.message }),
-        }
+        return respond(500, { msg: error.message });
     }
 }
